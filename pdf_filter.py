@@ -1,5 +1,6 @@
 import pdfquery
 import os
+import shutil
 
 
 working_dir = os.getcwd()
@@ -29,3 +30,16 @@ def get_all_pdf(path):
 
     except FileNotFoundError:
         return ['No files found in ' + path]
+
+
+# Place the given invoice in its corresponding directory
+def place_renamed_pdf(pdf_file):
+    client_name = get_invoice_client(pdf_file)
+    client_clean_name = client_name[1:]  # Remove first string ':'
+
+    # If the client directory doesn't exist, create it
+    if os.path.exists(working_dir + "\\" + client_clean_name) is False:
+        os.mkdir(client_clean_name)
+
+    # Copy the given invoice with its new name to the corresponding directory
+    shutil.copyfile(pdf_file, working_dir + "\\" + client_clean_name + "\\" + client_clean_name + ".pdf")
