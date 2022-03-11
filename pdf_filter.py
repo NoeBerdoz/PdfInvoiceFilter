@@ -1,4 +1,19 @@
+import pdfquery
 import os
+
+
+working_dir = os.getcwd()
+
+
+# Get the invoice's client data
+def get_invoice_client(pdf_file):
+    pdf = pdfquery.PDFQuery(pdf_file)
+    pdf.load()
+    pdf.tree.write('pdfXML.txt', pretty_print = True)
+    # 150.0, 678.82, 271.93, 688.82 is the client data position
+    company = pdf.pq('LTTextLineHorizontal:overlaps_bbox("150.0, 678.82, 271.93, 688.82")').text()
+    pdf.file.close()
+    return company
 
 
 # Get only pdf files in directory
@@ -14,6 +29,3 @@ def get_all_pdf(path):
 
     except FileNotFoundError:
         return ['No files found in ' + path]
-
-
-print(get_all_pdf(os.getcwd()+"/invoices"))
