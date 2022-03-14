@@ -66,3 +66,10 @@ def place_renamed_pdf(pdf_file):
     # Copy the given invoice with its new name to the corresponding directory
     shutil.copyfile(pdf_file, working_dir + "\\" + invoice_data['company'] + "\\" + invoice_data['invoice_number'] + ' ' + invoice_data['company'] + ".pdf")
 
+
+# TODO build an interface for the user to put his working directory
+given_input = working_dir + "/invoices/"
+all_pdf_files = get_all_pdf(given_input)
+# Place all pdf files in the working directory
+for pdf_file in all_pdf_files:
+    place_renamed_pdf(given_input + pdf_file)
