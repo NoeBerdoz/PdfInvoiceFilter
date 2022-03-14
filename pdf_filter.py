@@ -1,20 +1,39 @@
 import pdfquery
 import os
 import shutil
+import re
 
 
 working_dir = os.getcwd()
 
 
 # Get the invoice's client data
-def get_invoice_client(pdf_file):
+# TODO Manage exceptions
+# -> not found
+# -> permission error because file is open by user
+def get_invoice_data(pdf_file):
+
     pdf = pdfquery.PDFQuery(pdf_file)
     pdf.load()
     pdf.tree.write('pdfXML.txt', pretty_print = True)
+
     # 150.0, 678.82, 271.93, 688.82 is the client data position
-    company = pdf.pq('LTTextLineHorizontal:overlaps_bbox("150.0, 678.82, 271.93, 688.82")').text()
+    xml_company_data = pdf.pq('LTTextLineHorizontal:overlaps_bbox("150.0, 678.82, 271.93, 688.82")')
+    # REGEX = ':' character match -> '() capturing group
+    # -> [] character matches -> {1, } one to infinite time of it until '</'
+    all_companies = re.findall(r": ([A-Za-z0-9éèêëáàâäúùûüóòôöÉÈÊËÁÀÂÄÚÙÛÜÓÒÔÖ \-\.\,\_\t\n\r]{1,})<\/", str(xml_company_data))
+    company = all_companies[0]
+
+    # 150.0, 726.602, 302.118, 737.602 is the invoice number data position
+    xml_invoice_data = pdf.pq('LTTextLineHorizontal:overlaps_bbox("150.0, 726.602, 302.118, 737.602")')
+    # REGEX = ':' character match -> '() capturing group -> [0-9] number character matches -> {8} eight time of it
+    all_invoice_number = re.findall(r": ([0-9]{8})/@-\d \*\*", str(xml_invoice_data))
+    invoice_number = all_invoice_number[0]
+
     pdf.file.close()
-    return company
+
+    # Return a dictionary with the scrapped data
+    return {'company': company, 'invoice_number': invoice_number}
 
 
 # Get only pdf files in directory
@@ -34,12 +53,15 @@ def get_all_pdf(path):
 
 # Place the given invoice in its corresponding directory
 def place_renamed_pdf(pdf_file):
-    client_name = get_invoice_client(pdf_file)
-    client_clean_name = client_name[1:]  # Remove first string ':'
+    invoice_data = get_invoice_data(pdf_file)
 
     # If the client directory doesn't exist, create it
-    if os.path.exists(working_dir + "\\" + client_clean_name) is False:
-        os.mkdir(client_clean_name)
+    if os.path.exists(working_dir + "\\" + invoice_data['company']) is False:
+        os.mkdir(invoice_data['company'])
+
+    # Remove whitespace for path name compatibility
+    if invoice_data['company'][-1:] is ' ':
+        invoice_data['company'] = invoice_data['company'][:-1]  # Remove last string ' '
 
     # Copy the given invoice with its new name to the corresponding directory
-    shutil.copyfile(pdf_file, working_dir + "\\" + client_clean_name + "\\" + client_clean_name + ".pdf")
+    shutil.copyfile(pdf_file, working_dir + "\\" + invoice_data['company'] + "\\" + invoice_data['invoice_number'] + ' ' + invoice_data['company'] + ".pdf")
