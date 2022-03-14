@@ -21,7 +21,7 @@ def get_invoice_data(pdf_file):
     xml_company_data = pdf.pq('LTTextLineHorizontal:overlaps_bbox("150.0, 678.82, 271.93, 688.82")')
     # REGEX = ':' character match -> '() capturing group
     # -> [] character matches -> {1, } one to infinite time of it until '</'
-    all_companies = re.findall(r": ([A-Za-z0-9éèêëáàâäúùûüóòôöÉÈÊËÁÀÂÄÚÙÛÜÓÒÔÖ \-\.\,\_\t\n\r]{1,})<\/", str(xml_company_data))
+    all_companies = re.findall(r": ([A-Za-z0-9áàâäéèêëíìîïóòôöúùûüÁÀÂÄÉÈÊËÍÌÎÏÓÒÔÖÚÙÛÜ \-\.\,\_\t\n\r]{1,})<\/", str(xml_company_data))
     company = all_companies[0]
 
     # 150.0, 726.602, 302.118, 737.602 is the invoice number data position
@@ -55,13 +55,14 @@ def get_all_pdf(path):
 def place_renamed_pdf(pdf_file):
     invoice_data = get_invoice_data(pdf_file)
 
+    # Remove whitespace for path name compatibility
+    if invoice_data['company'][-1:] == ' ':
+        invoice_data['company'] = invoice_data['company'][:-1]  # Remove last string ' '
+
     # If the client directory doesn't exist, create it
     if os.path.exists(working_dir + "\\" + invoice_data['company']) is False:
         os.mkdir(invoice_data['company'])
 
-    # Remove whitespace for path name compatibility
-    if invoice_data['company'][-1:] is ' ':
-        invoice_data['company'] = invoice_data['company'][:-1]  # Remove last string ' '
-
     # Copy the given invoice with its new name to the corresponding directory
     shutil.copyfile(pdf_file, working_dir + "\\" + invoice_data['company'] + "\\" + invoice_data['invoice_number'] + ' ' + invoice_data['company'] + ".pdf")
+
