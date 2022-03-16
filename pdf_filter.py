@@ -60,20 +60,15 @@ class PdfFilter:
             invoice_data['company'] = invoice_data['company'][:-1]  # Remove last string ' '
 
         # If the client directory doesn't exist, create it
-        if os.path.exists(self.working_dir + "\\" + invoice_data['company']) is False:
-            os.mkdir(invoice_data['company'])
+        if os.path.exists(self.working_dir + invoice_data['company']) is False:
+            os.mkdir(self.working_dir + invoice_data['company'])
 
         # Copy the given invoice with its new name to the corresponding directory
-        shutil.copyfile(pdf_file, self.working_dir + "\\" + invoice_data['company'] + "\\" + invoice_data['invoice_number'] + ' ' + invoice_data['company'] + ".pdf")
+        shutil.copyfile(pdf_file, self.working_dir + invoice_data['company'] + "/" + invoice_data['invoice_number'] + ' ' + invoice_data['company'] + ".pdf")
 
     def run(self):
-        # TODO build an interface for the user to put his working directory
-        given_input = self.working_dir + "/invoices/"
+        given_input = self.working_dir
         all_pdf_files = self.get_all_pdf(given_input)
         # Place all pdf files in the working directory
         for pdf_file in all_pdf_files:
             self.place_renamed_pdf(given_input + pdf_file)
-
-
-my_pdf_filter = PdfFilter(os.getcwd())
-my_pdf_filter.run()
