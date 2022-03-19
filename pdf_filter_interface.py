@@ -35,12 +35,27 @@ while True:
     # Update list to show all files in the directory
     if event == "-FOLDER-":
         pdf_filter = PdfFilter(values['-FOLDER-'])
-        window['-FILES-'].update(PdfFilter.get_all_pdf(pdf_filter, values['-FOLDER-']))
+        all_pdf_files = pdf_filter.get_all_pdf(values['-FOLDER-'])
+        # If all_pdf_files is False, output no pdf file
+        if all_pdf_files:
+            window['-FILES-'].update(all_pdf_files)
+        else:
+            window['-FILES-'].update(["No pdf files in " + values['-FOLDER-']])
 
     # Filter the PDF present in given folder
     if event == "Filter":
         pdf_filter = PdfFilter(values['-FOLDER-'] + "/")
-        pdf_filter.run()
+        working_dir = values['-FOLDER-'] + "/"
+        all_pdf_files = pdf_filter.get_all_pdf(working_dir)
+        if all_pdf_files:
+            pdf_output = []
+            for pdf_file in all_pdf_files:
+                output = pdf_filter.place_renamed_pdf(working_dir + pdf_file)
+                pdf_output.append(output)
+
+            sg.popup_scrolled('\n'.join(pdf_output))
+
+
 
 
 
