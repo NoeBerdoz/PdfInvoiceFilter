@@ -13,8 +13,10 @@ row1 = sg.Frame(' Scan & Filter PDF files ',
                         [sg.In(enable_events=True, key="-FOLDER-"), sg.FolderBrowse()],
                         [sg.Text('List of files: ')],
                         [sg.Listbox(values=[], size=(55, 10), key='-FILES-')],
-                        [sg.Button('Filter')]
-                    ], size=(450, 300), pad=(0, 0))]
+                        [sg.Button('Filter')],
+                    ], size=(450, 300), pad=(0, 0))],
+                    [sg.Text(text='Filtering in progress...', key='progresstext', visible=False)],
+                    [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progressbar', visible=False)]
                 ]
                 )
 
@@ -47,11 +49,21 @@ while True:
         pdf_filter = PdfFilter(values['-FOLDER-'] + "/")
         working_dir = values['-FOLDER-'] + "/"
         all_pdf_files = pdf_filter.get_all_pdf(working_dir)
+
         if all_pdf_files:
+            max_pdf = len(all_pdf_files)
             pdf_output = []
+
+            progress_bar_index = 0
+            progress_bar = window['progressbar']
+            window['progresstext'].Update(visible=True)
+            progress_bar.Update(visible=True)
+
             for pdf_file in all_pdf_files:
                 output = pdf_filter.place_renamed_pdf(working_dir + pdf_file)
                 pdf_output.append(output)
+                progress_bar_index+=1000/max_pdf
+                progress_bar.UpdateBar(progress_bar_index)
 
             sg.popup_scrolled('\n'.join(pdf_output))
 
